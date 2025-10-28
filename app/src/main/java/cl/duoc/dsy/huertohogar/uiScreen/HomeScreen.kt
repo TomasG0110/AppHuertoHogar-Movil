@@ -1,32 +1,13 @@
 package cl.duoc.dsy.huertohogar.uiScreen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -36,33 +17,57 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.dsy.huertohogar.model.Producto
 import cl.duoc.dsy.huertohogar.viewmodel.HomeViewModel
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = viewModel() // 1. Inyectar ViewModel
+    viewModel: HomeViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val currentState = state
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        if (currentState.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            // IE 2.1.1: Lista estructurada
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(currentState.productos) { producto ->
-                    ProductoItem(producto = producto,
-                        onAddToCart = { viewModel.onAddToCartClicked(producto) }
-                    )
+    // --- 1. Configuración para el Snackbar ---
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // --- 2. Observador para mostrar el mensaje ---
+    // (IE 2.2.2: Retroalimentación visual)
+    LaunchedEffect(currentState.productAddedMessage) {
+        currentState.productAddedMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+            }
+            // Limpiamos el mensaje en el ViewModel
+            viewModel.onMessageShown()
+        }
+    }
+
+    // --- 3. Envolvemos la UI en un Scaffold ---
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues), // Aplicar padding del Scaffold
+            contentAlignment = Alignment.Center
+        ) {
+            if (currentState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(currentState.productos) { producto ->
+                        ProductoItem(
+                            producto = producto,
+                            onAddToCart = { viewModel.onAddToCartClicked(producto) }
+                        )
+                    }
                 }
             }
         }
@@ -71,8 +76,7 @@ fun HomeScreen(
 
 @Composable
 fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
-
-    // Función para formatear el precio como moneda
+    // ... (El código de ProductoItem no cambia en absoluto)
     val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
     format.maximumFractionDigits = 0
     val precioFormateado = format.format(producto.precioPorKilo)
@@ -94,7 +98,7 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = producto.nombre,
-                    style = MaterialTheme.typography.titleLarge, // Título del producto
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -110,13 +114,12 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "$precioFormateado / kg", // Precio
+                        text = "$precioFormateado / kg",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary // Verde
+                        color = MaterialTheme.colorScheme.primary
                     )
 
-                    // IE 2.2.2: Animación (implícita en el botón)
                     Button(onClick = {
                         onAddToCart()
                     }) {

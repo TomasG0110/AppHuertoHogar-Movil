@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import cl.duoc.dsy.huertohogar.db.AppDatabase
 import cl.duoc.dsy.huertohogar.model.Producto
-import cl.duoc.dsy.huertohogar.repository.CaritoRepository
+import cl.duoc.dsy.huertohogar.repository.CarritoRepository
 import cl.duoc.dsy.huertohogar.repository.ProductoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +21,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val productoRepository = ProductoRepository()
 
     // Repositorio de Carrito (conectado a Room)
-    private val carritoRepository: CaritoRepository
+    private val carritoRepository: CarritoRepository
 
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
@@ -29,7 +29,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // 3. Inicializar el DAO y el Repositorio del Carrito
         val cartDao = AppDatabase.getDatabase(application).cartDao()
-        carritoRepository = CaritoRepository(cartDao)
+        carritoRepository = CarritoRepository(cartDao)
 
         loadProductos()
     }
@@ -48,7 +48,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun onAddToCartClicked(producto: Producto) {
         viewModelScope.launch {
             carritoRepository.addProductoToCart(producto)
-            // TODO: Mostrar un Snackbar o feedback visual (IE 2.2.2)
+            _state.update { it.copy(productAddedMessage = "Producto añadido al carrito") }
         }
+    }
+    // La UI llamará a esto después de mostrar el mensaje
+    fun onMessageShown() {
+        _state.update { it.copy(productAddedMessage = null) }
     }
 }

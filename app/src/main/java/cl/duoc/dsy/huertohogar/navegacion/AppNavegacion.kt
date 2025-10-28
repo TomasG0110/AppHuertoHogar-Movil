@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cl.duoc.dsy.huertohogar.uiScreen.LoginScreen
 import cl.duoc.dsy.huertohogar.uiScreen.MainScreen
-import cl.duoc.dsy.huertohogar.uiScreen.RegisterScreen
+import cl.duoc.dsy.huertohogar.uiScreen.RegistroScreen
 import cl.duoc.dsy.huertohogar.uiScreen.SplashScreen
 
 @Composable
@@ -29,7 +29,7 @@ fun AppNavigation() {
 
         // Ruta para la pantalla de Registro
         composable(route = AppScreens.RegisterScreen.route) {
-            RegisterScreen(navController = navController)
+            RegistroScreen(navController = navController)
         }
 
         // Ruta para la pantalla Principal (que tendrá su propia nav)
