@@ -69,7 +69,7 @@ fun CartScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(currentState.items) { item ->
-                    CartItemView(item = item, format = format)
+                    CartItemView(item = item, format = format, onDelete = { viewModel.onDeleteItemClicked(item)} )
                 }
             }
         }
@@ -100,7 +100,7 @@ fun CartScreen(
 }
 
 @Composable
-fun CartItemView(item: CartItem, format: NumberFormat) {
+fun CartItemView(item: CartItem, format: NumberFormat, onDelete: () -> Unit ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -126,7 +126,7 @@ fun CartItemView(item: CartItem, format: NumberFormat) {
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            IconButton(onClick = { /* TODO: Implementar 'remover' en ViewModel */ }) {
+            IconButton(onClick = { onDelete() }) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
             }
         }

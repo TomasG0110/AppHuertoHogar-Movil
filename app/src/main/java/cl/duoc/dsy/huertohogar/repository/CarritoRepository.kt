@@ -6,7 +6,7 @@ import cl.duoc.dsy.huertohogar.model.Producto
 import kotlinx.coroutines.flow.Flow
 
 // IE 2.3.1: Repositorio para la lógica de persistencia del carrito
-class CaritoRepository(private val cartDao: CartDao) {
+class CarritoRepository(private val cartDao: CartDao) {
 
     // Obtiene todos los ítems del carrito (para la pantalla Carrito)
     fun getAllCartItems(): Flow<List<CartItem>> {
@@ -15,6 +15,7 @@ class CaritoRepository(private val cartDao: CartDao) {
 
     // Lógica para "Añadir al Carrito"
     suspend fun addProductoToCart(producto: Producto) {
+
         // 1. Revisar si el producto ya existe en el carrito
         val existingItem = cartDao.getItemByProductId(producto.id)
 
@@ -34,6 +35,10 @@ class CaritoRepository(private val cartDao: CartDao) {
             cartDao.insertItem(newItem)
         }
     }
+    suspend fun deleteItemFromCart(item: CartItem) {
+        // El DAO espera el ID del ítem a borrar
+        cartDao.deleteItem(item.id)
+    }
 
-    // TODO: Implementar funciones para eliminar, actualizar cantidad, etc.
+
 }
