@@ -60,7 +60,9 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(currentState.productos) { producto ->
-                    ProductoItem(producto = producto)
+                    ProductoItem(producto = producto,
+                        onAddToCart = { viewModel.onAddToCartClicked(producto) }
+                    )
                 }
             }
         }
@@ -68,7 +70,8 @@ fun HomeScreen(
 }
 
 @Composable
-fun ProductoItem(producto: Producto) {
+fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
+
     // Función para formatear el precio como moneda
     val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
     format.maximumFractionDigits = 0
@@ -115,7 +118,7 @@ fun ProductoItem(producto: Producto) {
 
                     // IE 2.2.2: Animación (implícita en el botón)
                     Button(onClick = {
-                        // TODO: Implementar lógica de "Agregar al Carrito" (Room)
+                        onAddToCart()
                     }) {
                         Icon(
                             Icons.Default.AddShoppingCart,

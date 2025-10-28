@@ -1,7 +1,12 @@
 package cl.duoc.dsy.huertohogar.viewmodel
 
-import androidx.lifecycle.ViewModel
+// 1. Importar lo necesario
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import cl.duoc.dsy.huertohogar.db.AppDatabase
+import cl.duoc.dsy.huertohogar.model.Producto
+import cl.duoc.dsy.huertohogar.repository.CaritoRepository
 import cl.duoc.dsy.huertohogar.repository.ProductoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -9,32 +14,41 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+// 2. Cambiar 'ViewModel' por 'AndroidViewModel(application)'
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
-class HomeViewModel : ViewModel() {
+    // Repositorio de Productos (simulado)
+    private val productoRepository = ProductoRepository()
 
-    // 1. Instancia del Repositorio
-    private val repository = ProductoRepository()
+    // Repositorio de Carrito (conectado a Room)
+    private val carritoRepository: CaritoRepository
 
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
-    // 3. El bloque init se ejecuta cuando el ViewModel es creado
     init {
+        // 3. Inicializar el DAO y el Repositorio del Carrito
+        val cartDao = AppDatabase.getDatabase(application).cartDao()
+        carritoRepository = CaritoRepository(cartDao)
+
         loadProductos()
     }
 
-    // 2. Lógica para cargar productos
     private fun loadProductos() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-
-            // TODO: Agregar delay(1000) si queremos simular carga de red
-
-            val productos = repository.getProductos()
-
+            val productos = productoRepository.getProductos()
             _state.update {
                 it.copy(isLoading = false, productos = productos)
             }
+        }
+    }
+
+    // 4. Nueva función paraAñadir al Carrito (IE 2.3.1)
+    fun onAddToCartClicked(producto: Producto) {
+        viewModelScope.launch {
+            carritoRepository.addProductoToCart(producto)
+            // TODO: Mostrar un Snackbar o feedback visual (IE 2.2.2)
         }
     }
 }
