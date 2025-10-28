@@ -63,7 +63,7 @@ fun LoginScreen(
     ) {
 
         Image(
-            painter = painterResource(id = R.drawable.Logo_HuertoHogar),
+            painter = painterResource(id = R.drawable.logo_huertohogar),
             contentDescription = "Logo HuertoHogar",
             modifier = Modifier.size(150.dp)
         )
