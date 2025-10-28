@@ -12,43 +12,56 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cl.duoc.dsy.huertohogar.R
 import cl.duoc.dsy.huertohogar.navegacion.AppScreens
+import cl.duoc.dsy.huertohogar.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    viewModel: LoginViewModel = viewModel()
+) {
 
-    // Estados locales para guardar el texto de los campos
-    // TODO: Mover estos estados al ViewModel (IE 2.2.1)
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
+
+    // <-- CORRECCIÓN: Capturamos el estado en una variable local inmutable.
+    val currentState = state
+
+    LaunchedEffect(currentState.loginSuccess) {
+        if (currentState.loginSuccess) {
+            navController.navigate(AppScreens.MainScreen.route) {
+                popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Fondo BlancoSuave
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Logo (IE 2.1.1 Coherencia Visual)
         Image(
             painter = painterResource(id = R.drawable.Logo_HuertoHogar),
             contentDescription = "Logo HuertoHogar",
@@ -57,68 +70,75 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Título (Usando los colores y tipografía del Tema)
         Text(
             text = "Iniciar Sesión",
-            style = MaterialTheme.typography.headlineMedium, // Tipografía Playfair (si la configuraste)
-            color = MaterialTheme.colorScheme.tertiary // Color MarronClaro
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.tertiary
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Campo de Email (IE 2.1.2 Formulario)
+        // Campo de Email (usando la variable local 'currentState')
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = currentState.email,
+            onValueChange = { viewModel.onEmailChange(it) },
             label = { Text("Correo Electrónico") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
-            // TODO: Añadir ícono y mensaje de error de validación (IE 2.1.2)
+            isError = currentState.emailError != null,
+            supportingText = {
+
+                currentState.emailError?.let { error ->
+                    Text(error)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de Contraseña (IE 2.1.2 Formulario)
+        // Campo de Contraseña (usando la variable local 'currentState')
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = currentState.pass,
+            onValueChange = { viewModel.onPasswordChange(it) },
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(), // Oculta la contraseña
+            visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
-            // TODO: Añadir ícono y mensaje de error de validación (IE 2.1.2)
+            isError = currentState.passError != null,
+            supportingText = {
+
+                currentState.passError?.let { error ->
+                    Text(error)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botón de Ingreso (IE 2.1.1 Navegación)
+        // Botón de Ingreso
         Button(
-            onClick = {
-                // TODO: Implementar lógica de login en ViewModel (IE 2.2.1)
-
-                // Navegación temporal
-                navController.navigate(AppScreens.MainScreen.route) {
-                    // Limpia el historial para que no pueda volver al Login
-                    popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
-                    launchSingleTop = true
-                }
-            },
+            onClick = { viewModel.onLoginClicked() },
+            enabled = !currentState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-            // El color del botón se toma de 'primary' (VerdeEsmeralda)
         ) {
-            Text("Ingresar")
+            if (currentState.isLoading) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text("Ingresar")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón de Registro (IE 2.1.1 Navegación)
-        TextButton(onClick = {
-            navController.navigate(AppScreens.RegisterScreen.route)
-        }) {
+        // Botón de Registro
+        TextButton(
+            onClick = { navController.navigate(AppScreens.RegisterScreen.route) },
+            enabled = !currentState.isLoading
+        ) {
             Text("¿No tienes cuenta? Regístrate aquí")
         }
     }
