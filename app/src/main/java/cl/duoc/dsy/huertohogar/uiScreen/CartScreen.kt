@@ -88,7 +88,7 @@ fun CartScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* TODO: Implementar checkout */ },
+                onClick = { viewModel.onCheckoutClicked() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)

@@ -1,5 +1,10 @@
 package cl.duoc.dsy.huertohogar.uiScreen
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +33,23 @@ fun MainScreen(navController: NavController) {
 
     // Este es el NavController INTERNO (para el Bottom Nav Bar)
     val mainNavController = rememberNavController()
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // El usuario aceptó
+        } else {
+            // El usuario denegó (podríamos mostrar un mensaje)
+        }
+    }
+
+    // Pedir permiso en cuanto la pantalla carga
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     // Lista de pantallas del Bottom Nav Bar
     val items = listOf(
