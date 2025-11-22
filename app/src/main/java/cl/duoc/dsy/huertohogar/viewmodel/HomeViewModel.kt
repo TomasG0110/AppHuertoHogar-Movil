@@ -55,4 +55,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun onMessageShown() {
         _state.update { it.copy(productAddedMessage = null) }
     }
+    fun onAddDummyProduct(){
+        viewModelScope.launch {
+            val nuevo = Producto(
+                id = 0,
+                nombre = "Producto Nuevo ${System.currentTimeMillis()}",
+                descripcion = "Creado desde la App Android",
+                precio = 5000,
+                imagenNombre = "manzanas_fuji"
+            )
+            productoRepository.addProducto(nuevo)
+            loadProductos()
+        }
+    }
 }

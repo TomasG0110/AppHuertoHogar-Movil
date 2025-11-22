@@ -101,6 +101,16 @@ fun CartScreen(
 
 @Composable
 fun CartItemView(item: CartItem, format: NumberFormat, onDelete: () -> Unit ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val imageResId = androidx.compose.runtime.remember(item.imagenNombre) {
+        context.resources.getIdentifier(
+            item.imagenNombre,
+            "drawable",
+            context.packageName
+        )
+    }
+    val imagenFinal = if (imageResId != 0) imageResId else cl.duoc.dsy.huertohogar.R.drawable.ic_launcher_foreground
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -110,7 +120,7 @@ fun CartItemView(item: CartItem, format: NumberFormat, onDelete: () -> Unit ) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = item.imagenResId),
+                painter = painterResource(id = imagenFinal),
                 contentDescription = item.nombre,
                 modifier = Modifier
                     .size(80.dp)
@@ -120,8 +130,9 @@ fun CartItemView(item: CartItem, format: NumberFormat, onDelete: () -> Unit ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text("Cantidad: ${item.quantity}", style = MaterialTheme.typography.bodyMedium)
+                val totalPrecio = item.precio * item.quantity
                 Text(
-                    text = format.format(item.precioPorKilo * item.quantity),
+                    text = format.format(totalPrecio),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )

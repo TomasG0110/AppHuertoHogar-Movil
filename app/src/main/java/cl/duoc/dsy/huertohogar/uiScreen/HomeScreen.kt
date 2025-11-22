@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,7 +48,14 @@ fun HomeScreen(
 
     // --- 3. Envolvemos la UI en un Scaffold ---
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { viewModel.onAddDummyProduct()},
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Crear Producto en Server")
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier

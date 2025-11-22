@@ -87,7 +87,7 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
             // 'collectLatest' se ejecutará cada vez que la DB cambie
             cartRepository.getAllCartItems().collectLatest { items ->
                 // Calcular el precio total
-                val total = items.sumOf { it.precioPorKilo * it.quantity }
+                val total = items.sumOf { it.precio * it.quantity }.toDouble()
 
                 // Actualizar el estado de la UI
                 _state.update {

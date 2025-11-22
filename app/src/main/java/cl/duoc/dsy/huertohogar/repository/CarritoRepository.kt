@@ -28,8 +28,8 @@ class CarritoRepository(private val cartDao: CartDao) {
             val newItem = CartItem(
                 productId = producto.id,
                 nombre = producto.nombre,
-                precioPorKilo = producto.precioPorKilo,
-                imagenResId = producto.imagenResId,
+                precio = producto.precio,
+                imagenNombre = producto.imagenNombre,
                 quantity = 1 // Cantidad inicial
             )
             cartDao.insertItem(newItem)

@@ -25,7 +25,7 @@ interface CartDao {
 
     // Obtiene un ítem específico por su ID de producto
     @Query("SELECT * FROM cart_items WHERE productId = :productId")
-    suspend fun getItemByProductId(productId: String): CartItem?
+    suspend fun getItemByProductId(productId: Long): CartItem?
 
     // Elimina un ítem de la base de datos
     @Query("DELETE FROM cart_items WHERE id = :itemId")
