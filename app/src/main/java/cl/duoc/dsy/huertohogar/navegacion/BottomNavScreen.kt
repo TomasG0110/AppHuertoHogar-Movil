@@ -3,6 +3,7 @@ package cl.duoc.dsy.huertohogar.navegacion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -27,5 +28,11 @@ sealed class BottomNavScreen(
         route = "profile",
         title = "Perfil",
         icon = Icons.Default.Person
+    )
+
+    object Recetas : BottomNavScreen(
+        route = "recetas",
+        title = "Recetas",
+        icon = Icons.Default.Restaurant
     )
 }

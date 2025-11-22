@@ -55,8 +55,12 @@ fun MainScreen(navController: NavController) {
     val items = listOf(
         BottomNavScreen.Home,
         BottomNavScreen.Cart,
-        BottomNavScreen.Profile
+        BottomNavScreen.Profile,
+        BottomNavScreen.Recetas
+
     )
+
+
 
     Scaffold(
         topBar = {
@@ -106,6 +110,7 @@ fun MainScreen(navController: NavController) {
                 composable(BottomNavScreen.Home.route) { HomeScreen() }
                 composable(BottomNavScreen.Cart.route) { CartScreen() }
                 composable(BottomNavScreen.Profile.route) { ProfileScreen() }
+                composable(BottomNavScreen.Recetas.route){RecetasScreen()}
             }
         }
     }
