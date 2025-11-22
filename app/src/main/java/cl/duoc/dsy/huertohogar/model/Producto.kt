@@ -10,5 +10,5 @@ data class Producto(
     val precio: Int,
     val stockEnKilos: Int,
     val categoria: String,
-     val imagenResId: String
+    val imagenNombre: String
 )

@@ -20,6 +20,7 @@ import cl.duoc.dsy.huertohogar.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import cl.duoc.dsy.huertohogar.R
 
 @Composable
 fun HomeScreen(
@@ -76,10 +77,28 @@ fun HomeScreen(
 
 @Composable
 fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
-    // ... (El código de ProductoItem no cambia en absoluto)
-    val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+
+    // 1. Obtener contexto para buscar recursos
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // 2. Buscar el ID de la imagen usando el nombre que viene del JSON
+    // (Ej: busca un drawable llamado "manzanas_fuji")
+    val imageResId = remember(producto.imagenNombre) {
+        context.resources.getIdentifier(
+            producto.imagenNombre,
+            "drawable",
+            context.packageName
+        )
+    }
+
+    // 3. Si no encuentra la imagen (id es 0), usa un ícono por defecto para que no falle
+    val imagenFinal = if (imageResId != 0) imageResId else R.drawable.ic_launcher_foreground // O tu logo
+
+
+    val format = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("es", "CL"))
     format.maximumFractionDigits = 0
-    val precioFormateado = format.format(producto.precioPorKilo)
+    // OJO: Ahora usamos 'producto.precio' (Int)
+    val precioFormateado = format.format(producto.precio)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -87,7 +106,7 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Image(
-                painter = painterResource(id = producto.imagenResId),
+                painter = painterResource(id = imagenFinal),
                 contentDescription = producto.nombre,
                 modifier = Modifier
                     .fillMaxWidth()
