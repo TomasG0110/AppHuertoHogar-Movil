@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,7 +37,6 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     // --- 2. Observador para mostrar el mensaje ---
-    // (IE 2.2.2: Retroalimentación visual)
     LaunchedEffect(currentState.productAddedMessage) {
         currentState.productAddedMessage?.let { message ->
             scope.launch {
@@ -74,7 +75,9 @@ fun HomeScreen(
                     items(currentState.productos) { producto ->
                         ProductoItem(
                             producto = producto,
-                            onAddToCart = { viewModel.onAddToCartClicked(producto) }
+                            onAddToCart = { viewModel.onAddToCartClicked(producto) },
+                            onDelete = { viewModel.onDeleteProduct(producto) },
+                            onUpdate = { viewModel.onUpdateProduct(producto) }
                         )
                     }
                 }
@@ -84,7 +87,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
+fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Unit, onUpdate: () -> Unit ) {
 
     // 1. Obtener contexto para buscar recursos
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -146,16 +149,19 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit ) {
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
-
-                    Button(onClick = {
-                        onAddToCart()
-                    }) {
-                        Icon(
-                            Icons.Default.AddShoppingCart,
-                            contentDescription = "Agregar al Carrito"
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Añadir")
+                    Row {
+                        // Botón Editar (Server)
+                        IconButton(onClick = { onUpdate() }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.tertiary)
+                        }
+                        // Botón Borrar (Server)
+                        IconButton(onClick = { onDelete() }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
+                        }
+                        // Botón Añadir (Carrito Local)
+                        IconButton(onClick = { onAddToCart() }) {
+                            Icon(Icons.Default.AddShoppingCart, contentDescription = "Añadir")
+                        }
                     }
                 }
             }

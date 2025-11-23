@@ -32,6 +32,15 @@ class ProductoRepository {
         }
     }
 
+    suspend fun updateProducto(id: Long, producto: Producto): Producto? {
+        return try {
+            api.updateProducto(id, producto)
+        } catch (e: Exception) {
+            android.util.Log.e("ProductoRepo", "Error update: ${e.message}")
+            null
+        }
+    }
+
     // 3. Eliminar producto del servidor (DELETE) - IE 3.1.3 CRUD
     suspend fun deleteProducto(id: Long): Boolean {
         return try {

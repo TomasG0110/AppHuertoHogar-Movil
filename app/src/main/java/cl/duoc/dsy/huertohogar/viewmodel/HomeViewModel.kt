@@ -68,4 +68,25 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             loadProductos()
         }
     }
+    fun onDeleteProduct(producto: Producto) {
+        viewModelScope.launch {
+            val exito = productoRepository.deleteProducto(producto.id)
+            if (exito) {
+                loadProductos() // Recargar lista para ver que desapareció
+            }
+        }
+    }
+
+    fun onUpdateProduct(producto: Producto) {
+        viewModelScope.launch {
+            // Creamos una versión modificada del producto
+            val productoModificado = producto.copy(
+                nombre = "${producto.nombre} Manzana Roja",
+                precio = producto.precio + 100    // Subimos el precio
+            )
+
+            productoRepository.updateProducto(producto.id, productoModificado)
+            loadProductos() // Recargar para ver cambios
+        }
+    }
 }
