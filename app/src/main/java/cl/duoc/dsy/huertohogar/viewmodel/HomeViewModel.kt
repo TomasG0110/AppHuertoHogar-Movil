@@ -77,16 +77,22 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun onUpdateProduct(producto: Producto) {
+    fun onUpdateProduct(id: Long, nuevoNombre: String, nuevoPrecio: Int) {
         viewModelScope.launch {
-            // Creamos una versión modificada del producto
-            val productoModificado = producto.copy(
-                nombre = "${producto.nombre} Manzana Roja",
-                precio = producto.precio + 100    // Subimos el precio
-            )
 
-            productoRepository.updateProducto(producto.id, productoModificado)
-            loadProductos() // Recargar para ver cambios
+            val productoActual = _state.value.productos.find { it.id == id }
+
+            if (productoActual != null) {
+                val productoModificado = productoActual.copy(
+                    nombre = nuevoNombre,
+                    precio = nuevoPrecio
+                )
+                productoRepository.updateProducto(id, productoModificado)
+
+
+
+                loadProductos() // Recargar para ver cambios
+            }
         }
     }
 }

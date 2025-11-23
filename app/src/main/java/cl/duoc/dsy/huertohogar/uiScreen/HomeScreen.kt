@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddShoppingCart
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cl.duoc.dsy.huertohogar.model.Producto
@@ -32,22 +34,37 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
     val currentState = state
 
-    // --- 1. Configuración para el Snackbar ---
+    // Usamos 'by' para manejar el valor directamente
+    var showDialog by remember { mutableStateOf(false) }
+    var productToEdit by remember { mutableStateOf<Producto?>(null) }
+
+    // --- Diálogo de Edición ---
+    if (showDialog && productToEdit != null) {
+        EditProductDialog(
+            producto = productToEdit!!,
+            onDismiss = { showDialog = false },
+            onConfirm = { nuevoNombre, nuevoPrecio ->
+                // Corregido: Usamos la instancia 'viewModel'
+                viewModel.onUpdateProduct(productToEdit!!.id, nuevoNombre, nuevoPrecio)
+                showDialog = false
+            }
+        )
+    }
+
+    // --- Snackbar ---
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // --- 2. Observador para mostrar el mensaje ---
     LaunchedEffect(currentState.productAddedMessage) {
         currentState.productAddedMessage?.let { message ->
             scope.launch {
                 snackbarHostState.showSnackbar(message)
             }
-            // Limpiamos el mensaje en el ViewModel
             viewModel.onMessageShown()
         }
     }
 
-    // --- 3. Envolvemos la UI en un Scaffold ---
+    // --- UI Principal ---
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
@@ -61,7 +78,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues), // Aplicar padding del Scaffold
+                .padding(paddingValues),
             contentAlignment = Alignment.Center
         ) {
             if (currentState.isLoading) {
@@ -77,7 +94,11 @@ fun HomeScreen(
                             producto = producto,
                             onAddToCart = { viewModel.onAddToCartClicked(producto) },
                             onDelete = { viewModel.onDeleteProduct(producto) },
-                            onUpdate = { viewModel.onUpdateProduct(producto) }
+                            onUpdate = {
+                                // Corregido: asignación correcta
+                                productToEdit = producto
+                                showDialog = true
+                            }
                         )
                     }
                 }
@@ -88,12 +109,7 @@ fun HomeScreen(
 
 @Composable
 fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Unit, onUpdate: () -> Unit ) {
-
-    // 1. Obtener contexto para buscar recursos
     val context = androidx.compose.ui.platform.LocalContext.current
-
-    // 2. Buscar el ID de la imagen usando el nombre que viene del JSON
-    // (Ej: busca un drawable llamado "manzanas_fuji")
     val imageResId = remember(producto.imagenNombre) {
         context.resources.getIdentifier(
             producto.imagenNombre,
@@ -101,14 +117,10 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Uni
             context.packageName
         )
     }
+    val imagenFinal = if (imageResId != 0) imageResId else R.drawable.ic_launcher_foreground
 
-    // 3. Si no encuentra la imagen (id es 0), usa un ícono por defecto para que no falle
-    val imagenFinal = if (imageResId != 0) imageResId else R.drawable.ic_launcher_foreground // O tu logo
-
-
-    val format = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("es", "CL"))
+    val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
     format.maximumFractionDigits = 0
-    // OJO: Ahora usamos 'producto.precio' (Int)
     val precioFormateado = format.format(producto.precio)
 
     Card(
@@ -150,15 +162,12 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Uni
                         color = MaterialTheme.colorScheme.primary
                     )
                     Row {
-                        // Botón Editar (Server)
                         IconButton(onClick = { onUpdate() }) {
                             Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.tertiary)
                         }
-                        // Botón Borrar (Server)
                         IconButton(onClick = { onDelete() }) {
                             Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
                         }
-                        // Botón Añadir (Carrito Local)
                         IconButton(onClick = { onAddToCart() }) {
                             Icon(Icons.Default.AddShoppingCart, contentDescription = "Añadir")
                         }
@@ -167,4 +176,49 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Uni
             }
         }
     }
+}
+
+// Movido fuera de ProductoItem para que sea accesible globalmente
+@Composable
+fun EditProductDialog(
+    producto: Producto,
+    onDismiss: () -> Unit,
+    onConfirm: (String, Int) -> Unit
+) {
+    var nombre by remember { mutableStateOf(producto.nombre) }
+    var precioStr by remember { mutableStateOf(producto.precio.toString()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Editar Producto") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre del Producto") }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = precioStr,
+                    onValueChange = { precioStr = it },
+                    label = { Text("Precio") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val precioInt = precioStr.toIntOrNull() ?: 0
+                onConfirm(nombre, precioInt)
+            }) {
+                Text("Guardar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
