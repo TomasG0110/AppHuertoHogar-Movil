@@ -1,4 +1,4 @@
-package cl.duoc.dsy.huertohogar.uiScreen
+package cl.duoc.dsy.huertohogar.ui.screens // Asegúrate que el paquete sea el correcto
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -26,7 +26,9 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import cl.duoc.dsy.huertohogar.R
+import cl.duoc.dsy.huertohogar.utils.SessionManager
 
+// 1. PANTALLA PRINCIPAL
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel()
@@ -34,7 +36,10 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
     val currentState = state
 
-    // Usamos 'by' para manejar el valor directamente
+    val usuario by SessionManager.usuarioActual.collectAsState()
+    val esAdmin = usuario?.rol == "Admin"
+    val esInvitado = usuario?.rol == "Visita"
+
     var showDialog by remember { mutableStateOf(false) }
     var productToEdit by remember { mutableStateOf<Producto?>(null) }
 
@@ -44,7 +49,6 @@ fun HomeScreen(
             producto = productToEdit!!,
             onDismiss = { showDialog = false },
             onConfirm = { nuevoNombre, nuevoPrecio ->
-                // Corregido: Usamos la instancia 'viewModel'
                 viewModel.onUpdateProduct(productToEdit!!.id, nuevoNombre, nuevoPrecio)
                 showDialog = false
             }
@@ -68,10 +72,13 @@ fun HomeScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.onAddDummyProduct()},
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Crear Producto en Server")
+            // Solo mostramos el botón flotante si es Admin (opcional, según tu criterio)
+            if (esAdmin) {
+                FloatingActionButton(
+                    onClick = { viewModel.onAddDummyProduct() },
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Crear Producto en Server")
+                }
             }
         }
     ) { paddingValues ->
@@ -92,10 +99,11 @@ fun HomeScreen(
                     items(currentState.productos) { producto ->
                         ProductoItem(
                             producto = producto,
+                            esAdmin = esAdmin,
+                            esInvitado = esInvitado,
                             onAddToCart = { viewModel.onAddToCartClicked(producto) },
                             onDelete = { viewModel.onDeleteProduct(producto) },
                             onUpdate = {
-                                // Corregido: asignación correcta
                                 productToEdit = producto
                                 showDialog = true
                             }
@@ -107,8 +115,16 @@ fun HomeScreen(
     }
 }
 
+// 2. TARJETA DE PRODUCTO
 @Composable
-fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Unit, onUpdate: () -> Unit ) {
+fun ProductoItem(
+    producto: Producto,
+    esAdmin: Boolean,
+    esInvitado: Boolean,
+    onAddToCart: () -> Unit,
+    onDelete: () -> Unit,
+    onUpdate: () -> Unit
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val imageResId = remember(producto.imagenNombre) {
         context.resources.getIdentifier(
@@ -162,14 +178,28 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Uni
                         color = MaterialTheme.colorScheme.primary
                     )
                     Row {
-                        IconButton(onClick = { onUpdate() }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.tertiary)
+                        // Solo Admin ve editar/borrar
+                        if (esAdmin) {
+                            IconButton(onClick = { onUpdate() }) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Editar",
+                                    tint = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                            IconButton(onClick = { onDelete() }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Borrar",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
-                        IconButton(onClick = { onDelete() }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = MaterialTheme.colorScheme.error)
-                        }
-                        IconButton(onClick = { onAddToCart() }) {
-                            Icon(Icons.Default.AddShoppingCart, contentDescription = "Añadir")
+                        // Solo si NO es invitado, puede comprar
+                        if (!esInvitado) {
+                            IconButton(onClick = { onAddToCart() }) {
+                                Icon(Icons.Default.AddShoppingCart, contentDescription = "Añadir")
+                            }
                         }
                     }
                 }
@@ -178,7 +208,7 @@ fun ProductoItem(producto: Producto, onAddToCart: () -> Unit, onDelete:() -> Uni
     }
 }
 
-// Movido fuera de ProductoItem para que sea accesible globalmente
+// 3. DIÁLOGO DE EDICIÓN (¡AHORA ESTÁ AFUERA!)
 @Composable
 fun EditProductDialog(
     producto: Producto,
