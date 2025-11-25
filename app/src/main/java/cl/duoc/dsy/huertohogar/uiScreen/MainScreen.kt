@@ -1,5 +1,9 @@
 package cl.duoc.dsy.huertohogar.uiScreen
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -23,15 +28,28 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import cl.duoc.dsy.huertohogar.navegacion.BottomNavScreen
 import cl.duoc.dsy.huertohogar.utils.SessionManager
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: NavController) {
 
-    // Este es el NavController INTERNO (para el Bottom Nav Bar)
     val mainNavController = rememberNavController()
-
     val usuario by SessionManager.usuarioActual.collectAsState()
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Aquí podrías manejar si el usuario rechaza, por ahora no es necesario
+    }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+    // -------------------------------------------------------
+
+    // 2. LÓGICA DE ROLES (Polimorfismo)
     val items = usuario?.obtenerMenuNavegacion() ?: listOf(BottomNavScreen.Home)
 
     Scaffold(
@@ -50,11 +68,9 @@ fun MainScreen(navController: NavController) {
             )
         },
         bottomBar = {
-            // --- Bottom Navigation Bar ---
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
-                // Obtener la ruta actual para saber qué ícono resaltar
                 val navBackStackEntry by mainNavController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -65,7 +81,6 @@ fun MainScreen(navController: NavController) {
                         selected = currentRoute == screen.route,
                         onClick = {
                             mainNavController.navigate(screen.route) {
-                                // Navegación de ítem único
                                 popUpTo(mainNavController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -78,19 +93,16 @@ fun MainScreen(navController: NavController) {
             }
         }
     ) { innerPadding ->
-        // --- Contenido Principal (NavHost Anidado) ---
         Box(modifier = Modifier.padding(innerPadding)) {
             NavHost(
                 navController = mainNavController,
-                startDestination = BottomNavScreen.Home.route // Empezar en Home
+                startDestination = BottomNavScreen.Home.route
             ) {
                 composable(BottomNavScreen.Home.route) { HomeScreen() }
                 composable(BottomNavScreen.Cart.route) { CartScreen() }
                 composable(BottomNavScreen.Profile.route) { ProfileScreen() }
-                composable(BottomNavScreen.Recetas.route){RecetasScreen()}
-                composable(BottomNavScreen.Stores.route){
-                    androidx.compose.material3.Text("Mapa de tiendas (En construccion)")
-                }
+                composable(BottomNavScreen.Recetas.route) { RecetasScreen() }
+                composable(BottomNavScreen.Stores.route){StoresScreen()}
             }
         }
     }

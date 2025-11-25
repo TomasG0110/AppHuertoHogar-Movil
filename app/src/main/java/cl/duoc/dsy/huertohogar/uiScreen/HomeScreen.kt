@@ -1,4 +1,4 @@
-package cl.duoc.dsy.huertohogar.ui.screens // Asegúrate que el paquete sea el correcto
+package cl.duoc.dsy.huertohogar.uiScreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
