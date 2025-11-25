@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavScreen(
@@ -17,22 +18,24 @@ sealed class BottomNavScreen(
         title = "Inicio",
         icon = Icons.Default.Home
     )
-
     object Cart : BottomNavScreen(
         route = "cart",
         title = "Carrito",
         icon = Icons.Default.ShoppingCart
     )
-
     object Profile : BottomNavScreen(
         route = "profile",
         title = "Perfil",
         icon = Icons.Default.Person
     )
-
     object Recetas : BottomNavScreen(
         route = "recetas",
         title = "Recetas",
         icon = Icons.Default.Restaurant
     )
+
+    object Stores : BottomNavScreen(
+        route = "stores",
+        title = "Tiendas",
+        icon = Icons.Default.Storefront)
 }

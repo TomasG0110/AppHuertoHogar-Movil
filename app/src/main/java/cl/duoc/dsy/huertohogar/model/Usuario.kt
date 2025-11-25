@@ -9,6 +9,10 @@ abstract class Usuario (
 ){
     //METODO POLIMORFICO
     abstract fun obtenerMenuNavegacion(): List<BottomNavScreen>
+
+    fun obtenerSaludo(): String {
+        return "Hola $nombre ($rol)"
+    }
 }
 
 class Administrador(nombre: String, email: String) : Usuario(nombre, email, "Admin"){
