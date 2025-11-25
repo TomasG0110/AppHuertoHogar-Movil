@@ -8,6 +8,11 @@ import cl.duoc.dsy.huertohogar.uiScreen.LoginScreen
 import cl.duoc.dsy.huertohogar.uiScreen.MainScreen
 import cl.duoc.dsy.huertohogar.uiScreen.RegistroScreen
 import cl.duoc.dsy.huertohogar.uiScreen.SplashScreen
+import cl.duoc.dsy.huertohogar.uiScreen.RecoveryScreen
+import cl.duoc.dsy.huertohogar.navegacion.AppScreens
+
+
+
 
 @Composable
 fun AppNavigation() {
@@ -36,5 +41,15 @@ fun AppNavigation() {
         composable(route = AppScreens.MainScreen.route) {
             MainScreen(navController = navController)
         }
+
+        composable(route = AppScreens.RecoveryScreen.route) {
+            LoginScreen(navController = navController)
+        }
+
+        composable(route = AppScreens.RecoveryScreen.route) {
+            RecoveryScreen(navController = navController)
+        }
+
+        composable(route = AppScreens.RegisterScreen.route) {}
     }
 }
