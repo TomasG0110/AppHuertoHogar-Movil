@@ -20,8 +20,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // 1. Configuración de la firma (Signing Config)
+    signingConfigs {
+        create("release") {
+            // NOTA: El archivo .jks debe estar dentro de la carpeta 'app'
+            storeFile = file("huerto_keystore.jks")
+            storePassword = "huerto123" // CAMBIAR POR TU CONTRASEÑA
+            keyAlias = "key0"             // CAMBIAR SI USASTE OTRO ALIAS
+            keyPassword = "huerto123"   // CAMBIAR POR TU CONTRASEÑA
+        }
+    }
+
     buildTypes {
         release {
+            // 2. Aplicar la firma a la versión release
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
